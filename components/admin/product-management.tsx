@@ -251,57 +251,183 @@ export function ProductManagement() {
   )
 }
 
-function AddProductForm({ onSuccess }: { onSuccess: () => void }) {
+
+// import React, { useState } from "react"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { storage } from "@/lib/firebase-config"
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { Textarea } from "@/components/ui/textarea"
+// import { Loader2 } from "lucide-react"
+// import { useToast } from "@/hooks/use-toast"
+
+
+interface AddProductFormProps {
+  onSuccess: () => void
+}
+
+export function AddProductForm({ onSuccess }: AddProductFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     description: "",
     price: "",
     stock: "",
-    images: [""],
   })
+
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //     console.log("handleSubmit! start", )
 
-    try {
-      const response = await fetch("/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          price: Number.parseFloat(formData.price),
-          stock: Number.parseInt(formData.stock),
-          category: formData.category,
-          images: formData.images.filter((img) => img.trim()),
-          active: true,
-          featured: false,
-        }),
-      })
+  //   try {
+  //     // Upload images to Firebase Storage
+  //     const uploadedImageUrls: string[] = []
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to add product")
-      }
+  //     for (const file of selectedFiles) {
+  //       const imageRef = ref(storage, `products/${Date.now()}-${file.name}`)
+  //             console.log("Uploaded a blob or imageRef!", imageRef)
 
-      onSuccess()
-    } catch (error) {
-      console.error("Error adding product:", error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add product",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
+  //       const snapshot = await uploadBytes(imageRef, file)
+  //     console.log("Uploaded a blob or file!", snapshot)
+  //       const url = await getDownloadURL(snapshot.ref)
+  //             console.log("Uploaded a blob or url!", url)
+
+  //       uploadedImageUrls.push(url)
+  //     }
+
+  //     // Submit product data to backend API
+  //     const response = await fetch("/api/products", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         name: formData.name,
+  //         description: formData.description,
+  //         price: parseFloat(formData.price),
+  //         stock: parseInt(formData.stock),
+  //         category: formData.category,
+  //         images: uploadedImageUrls,
+  //         active: true,
+  //         featured: false,
+  //       }),
+  //     })
+
+  //     if (!response.ok) {
+  //       const error = await response.json()
+  //       throw new Error(error.error || "Failed to add product")
+  //     }
+
+  //     toast({
+  //       title: "Success",
+  //       description: "Product added successfully",
+  //     })
+
+  //     // Reset form
+  //     setFormData({
+  //       name: "",
+  //       category: "",
+  //       description: "",
+  //       price: "",
+  //       stock: "",
+  //     })
+  //     setSelectedFiles([])
+  //     onSuccess()
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description: error instanceof Error ? error.message : "Failed to add product",
+  //       variant: "destructive",
+  //     })
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  console.log("handleSubmit! start")
+
+  try {
+    // Array to hold uploaded image URLs
+    const uploadedImageUrls: string[] = []
+
+    // Loop through each selected file and upload it to Firebase Storage
+    for (const file of selectedFiles) {
+      const imageRef = ref(storage, `products/${Date.now()}-${file.name}`)
+      console.log("Uploading file to Firebase Storage, ref:", imageRef)
+
+      const snapshot = await uploadBytes(imageRef, file)
+      console.log("Upload successful, snapshot:", snapshot)
+
+      const url = await getDownloadURL(snapshot.ref)
+      console.log("Download URL obtained:", url)
+
+      uploadedImageUrls.push(url)
     }
+
+    console.log("All images uploaded. URLs:", uploadedImageUrls)
+
+    // Send product data including image URLs to backend API
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        category: formData.category,
+        images: uploadedImageUrls,
+        active: true,
+        featured: false,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || "Failed to add product")
+    }
+
+    console.log("Product added successfully to backend")
+
+    toast({
+      title: "Success",
+      description: "Product added successfully",
+    })
+
+    // Reset form state
+    setFormData({
+      name: "",
+      category: "",
+      description: "",
+      price: "",
+      stock: "",
+    })
+    setSelectedFiles([])
+
+    // Notify parent component or caller that product was added
+    onSuccess()
+  } catch (error) {
+    console.error("Error in handleSubmit:", error)
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to add product",
+      variant: "destructive",
+    })
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -321,14 +447,15 @@ function AddProductForm({ onSuccess }: { onSuccess: () => void }) {
           <Select
             value={formData.category}
             onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -355,6 +482,7 @@ function AddProductForm({ onSuccess }: { onSuccess: () => void }) {
             type="number"
             placeholder="0.00"
             step="0.01"
+            min="0"
             value={formData.price}
             onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
             required
@@ -366,6 +494,7 @@ function AddProductForm({ onSuccess }: { onSuccess: () => void }) {
             id="stock"
             type="number"
             placeholder="0"
+            min="0"
             value={formData.stock}
             onChange={(e) => setFormData((prev) => ({ ...prev, stock: e.target.value }))}
             required
@@ -374,19 +503,25 @@ function AddProductForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="image">Product Image URL</Label>
+        <Label htmlFor="images">Upload Product Images</Label>
         <Input
-          id="image"
-          placeholder="https://example.com/image.jpg"
-          value={formData.images[0]}
-          onChange={(e) => setFormData((prev) => ({ ...prev, images: [e.target.value] }))}
+          id="images"
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => {
+            if (e.target.files) {
+              setSelectedFiles(Array.from(e.target.files))
+            }
+          }}
+          required
         />
+        {selectedFiles.length > 0 && (
+          <p className="text-sm text-muted-foreground">{selectedFiles.length} file(s) selected</p>
+        )}
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" disabled={loading}>
-          Cancel
-        </Button>
         <Button type="submit" disabled={loading}>
           {loading ? (
             <>
