@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Tomato Seeds",
+    "description": "Premium quality hybrid tomato seeds for home gardening",
+    "price": 299,
+    "category": "Seeds",
+    "subcategory": "Vegetable Seeds",
+    "stock": 100,
+    "sku": "TOM001",
+    "images": ["tomato-seeds-1.jpg", "tomato-seeds-2.jpg"],
+    "weight": "50g",
+    "dimensions": "10x5x2cm",
+    "features": ["Hybrid variety", "High yield", "Disease resistant"],
+    "plantingInstructions": "Sow in well-drained soil, water regularly"
+  },
+  {
+    "name": "Chili Seeds",
+    "description": "Hot chili pepper seeds - perfect for spicy lovers",
+    "price": 199,
+    "category": "Seeds",
+    "subcategory": "Vegetable Seeds",
+    "stock": 150,
+    "sku": "CHI001",
+    "images": ["chili-seeds-1.jpg"],
+    "weight": "25g",
+    "dimensions": "8x4x1cm",
+    "features": ["High heat level", "Fast growing", "Compact plant"],
+    "plantingInstructions": "Plant in sunny location, moderate watering"
+  },
+  {
+    "name": "Rose Seeds",
+    "description": "Beautiful red rose seeds for your garden",
+    "price": 399,
+    "category": "Seeds",
+    "subcategory": "Flower Seeds",
+    "stock": 75,
+    "sku": "ROS001",
+    "images": ["rose-seeds-1.jpg", "rose-seeds-2.jpg"],
+    "weight": "30g",
+    "dimensions": "12x6x2cm",
+    "features": ["Fragrant blooms", "Long flowering season", "Hardy variety"],
+    "plantingInstructions": "Plant in rich soil, full sun exposure"
+  },
+  {
+    "name": "Organic Fertilizer",
+    "description": "100% organic fertilizer for healthy plant growth",
+    "price": 599,
+    "category": "Fertilizers",
+    "subcategory": "Organic",
+    "stock": 200,
+    "sku": "ORG001",
+    "images": ["fertilizer-1.jpg"],
+    "weight": "1kg",
+    "dimensions": "20x15x10cm",
+    "features": ["100% organic", "Slow release", "All-purpose"],
+    "usage": "Apply 2-3 tablespoons per plant monthly"
+  },
+  {
+    "name": "Garden Spade",
+    "description": "Heavy duty steel garden spade with wooden handle",
+    "price": 899,
+    "category": "Tools",
+    "subcategory": "Hand Tools",
+    "stock": 50,
+    "sku": "SPA001",
+    "images": ["spade-1.jpg", "spade-2.jpg"],
+    "weight": "800g",
+    "dimensions": "60x15x5cm",
+    "features": ["Stainless steel blade", "Ergonomic handle", "Rust resistant"],
+    "warranty": "2 years"
+  }
+]

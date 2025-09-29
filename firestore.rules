@@ -1,0 +1,132 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own data, admins can read all
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Products collection - public read, admin write with validation
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAdmin() && 
+        request.resource.data.keys().hasAll(['name', 'price', 'description', 'category', 'stock', 'createdAt']) &&
+        request.resource.data.price is number &&
+        request.resource.data.stock is number &&
+        request.resource.data.stock >= 0;
+      allow update: if isAdmin() && 
+        request.resource.data.keys().hasAll(['name', 'price', 'description', 'category', 'stock', 'updatedAt']) &&
+        request.resource.data.price is number &&
+        request.resource.data.stock is number &&
+        request.resource.data.stock >= 0;
+      allow delete: if isAdmin();
+    }
+    
+    // Orders collection - users can read their own orders, admin can read all
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'items', 'total', 'status', 'createdAt']) &&
+        request.resource.data.total is number &&
+        request.resource.data.total > 0 &&
+        request.resource.data.status in ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+      allow update: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin()) &&
+        request.resource.data.status in ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+    }
+    
+    // Categories collection - public read, admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin() &&
+        request.resource.data.keys().hasAll(['name', 'description']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0;
+    }
+    
+    // Cart collection - users can read/write their own cart
+    match /carts/{userId} {
+      allow read, write: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Reviews collection - authenticated users can create, users can edit their own
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'productId', 'rating', 'comment', 'createdAt']) &&
+        request.resource.data.rating is number &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5;
+      allow update: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Inventory collection - admin only
+    match /inventory/{inventoryId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Payment records - users can read their own, admin can read all
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'orderId', 'amount', 'status', 'createdAt']);
+      allow update: if isAdmin();
+    }
+    
+    // Wishlist collection - users can read/write their own
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Addresses collection - users can read/write their own
+    match /addresses/{addressId} {
+      allow read, write: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Coupons collection - public read, admin write
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Analytics collection - admin only
+    match /analytics/{analyticsId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
