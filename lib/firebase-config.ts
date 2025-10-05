@@ -6,16 +6,16 @@ import { getAuth, type Auth } from "firebase/auth"
 import { getFirestore, type Firestore } from "firebase/firestore"
 import { getStorage, type FirebaseStorage } from "firebase/storage"
 import { getAnalytics, type Analytics } from "firebase/analytics"
-
+import { Configfb as configfb } from "./env"
 // Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCMHwyt_G6FAYKjyavkCD1jLdPpcceVWkk",
-  authDomain: "leaf-aid-b7ef8.firebaseapp.com",
-  projectId: "leaf-aid-b7ef8",
-  storageBucket: "leaf-aid-b7ef8.firebasestorage.app",
-  messagingSenderId: "18884558570",
-  appId: "1:18884558570:web:b188d9872ce8626a6c6193",
-  measurementId: "G-XXXXXXXXXX", // Add your measurement ID if available
+  apiKey: configfb.apiKey,
+  authDomain: configfb.authDomain,
+  projectId: configfb.projectId,
+  storageBucket: configfb,
+  messagingSenderId:configfb.messagingSenderId,
+  appId:configfb.appId,
+  measurementId:configfb.measurementId, // Add your measurement ID if available
 }
 
 // Razorpay Configuration for Indian Market
